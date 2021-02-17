@@ -287,6 +287,7 @@ public class LoadDataWorker implements Runnable
 		{
 		    stmtItem.executeBatch();
 		    stmtItem.clearBatch();
+		    dbConn.commit();
 		}
 	    }
 
@@ -401,6 +402,7 @@ public class LoadDataWorker implements Runnable
 		{
 		    stmtStock.executeBatch();
 		    stmtStock.clearBatch();
+		    dbConn.commit();
 		}
 	    }
 
