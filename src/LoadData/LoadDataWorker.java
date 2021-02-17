@@ -287,6 +287,7 @@ public class LoadDataWorker implements Runnable
 		{
 		    stmtItem.executeBatch();
 		    stmtItem.clearBatch();
+		    dbConn.commit();
 		}
 	    }
 
@@ -391,9 +392,9 @@ public class LoadDataWorker implements Runnable
 	{
 	    String sData;
 	    /*
-	     * Load the data in batches of 10,000 rows.
+	     * Load the data in batches of 500 rows.
 	     */
-	    if (s_i_id != 1 && (s_i_id - 1) % 10000 == 0)
+	    if (s_i_id != 1 && (s_i_id - 1) % 500 == 0)
 	    {
 		if (writeCSV)
 		    LoadData.warehouseAppend(sbWarehouse);
@@ -401,6 +402,7 @@ public class LoadDataWorker implements Runnable
 		{
 		    stmtStock.executeBatch();
 		    stmtStock.clearBatch();
+		    dbConn.commit();
 		}
 	    }
 

@@ -38,6 +38,17 @@ function setCP()
 	postgres)
 	    cp="../lib/postgres/*:../lib/*"
 	    ;;
+	mysql)
+       echo "!! GET MySQL JDBC Driver first into 'lib/' directory.!!!!"
+	    cp="../lib/mysql/*:../lib/*"
+	    ;;
+	tidb)
+       echo "!! GET MySQL JDBC Driver first into 'lib/' directory.!!!!"
+	    cp="../lib/mysql/*:../lib/*"
+	    ;;
+	yugabyte)
+	    cp="../lib/yugabyte/*:../lib/*"
+	    ;;
     esac
     myCP=".:${cp}:../dist/*"
     export myCP
@@ -48,7 +59,7 @@ function setCP()
 # is a database, we support.
 # ----
 case "$(getProp db)" in
-    firebird|oracle|postgres)
+    firebird|oracle|postgres|mysql|tidb|yugabyte)
 	;;
     "")	echo "ERROR: missing db= config option in ${PROPS}" >&2
 	exit 1
