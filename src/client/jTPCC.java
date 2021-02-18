@@ -758,7 +758,7 @@ public class jTPCC implements jTPCCConfig
 
 	    sessionNextTimestamp += 1000;  /* update this every seconds */
 
-	    fmt.format("progress: %.1f, tpmTOTAL: %.1f, tpmC: %.1f",
+	    fmt.format("-- %.1f, tpmTOTAL: %.1f, tpmC: %.1f",
 		       (double) (currTimeMillis - sessionStartTimestamp)/1000, tpmTotal, tpmC);
 
 	    recentTpmTotal= (transactionCount-sessionNextKounter)*12;
@@ -767,13 +767,13 @@ public class jTPCC implements jTPCCConfig
 	    // XXX: This doesn't seem worth including
 	    //fmt.format("    Current tpmTOTAL: %d", recentTpmTotal);
 
-	    long freeMem = Runtime.getRuntime().freeMemory() / (1024*1024);
-	    long totalMem = Runtime.getRuntime().totalMemory() / (1024*1024);
-
 	    // XXX: This doesn't seem worth including
+	    // long freeMem = Runtime.getRuntime().freeMemory() / (1024*1024);
+	    // long totalMem = Runtime.getRuntime().totalMemory() / (1024*1024);
 	    //fmt.format("    Memory Usage: %dMB / %dMB          ", (totalMem - freeMem), totalMem);
 
-	    System.out.println(informativeText);
+	    // System.out.println(informativeText);
+	    log.info(informativeText);
 	}
     }
 
