@@ -2464,13 +2464,19 @@ public class jTPCCTData
 		    }
 		    o_id = rs.getInt("no_o_id");
 		    rs.close();
+				/*
+				 * This logic only works in SNAPSHOT isolation
+				 * level. Because we select new_order for update,
+				 * the order must be not selected by other termnial
+				 * as long as this SQL statement return it.
+				 */
 
-		    stmt2.setInt(1, deliveryBG.w_id);
-		    stmt2.setInt(2, d_id);
-		    stmt2.setInt(3, o_id);
-		    rc = stmt2.executeUpdate();
-		    if (rc == 0)
-		    {
+		    // stmt2.setInt(1, deliveryBG.w_id);
+		    // stmt2.setInt(2, d_id);
+		    // stmt2.setInt(3, o_id);
+		    // rc = stmt2.executeUpdate();
+		    // if (rc == 0)
+		    // {
 			/*
 			 * Failed to delete the NEW_ORDER row. This is not
 			 * an error since for concurrency reasons we did
@@ -2482,8 +2488,8 @@ public class jTPCCTData
 			 * level and will cause SQLExceptions in anything
 			 * higher than that.
 			 */
-			o_id = -1;
-		    }
+			// o_id = -1;
+		    // }
 		}
 
 		if (o_id < 0)
