@@ -49,6 +49,13 @@ function setCP()
 	yugabyte)
 	    cp="../lib/yugabyte/*:../lib/*"
 	    ;;
+	tibero)
+	    cp="../lib/tibero/*"
+	    if [ ! -z "${TB_HOME}" -a -d ${TB_HOME}/client/lib/jar ] ; then
+		cp="${cp}:${TB_HOME}/client/lib/jar/tibero6-jdbc.jar"
+	    fi
+	    cp="${cp}:../lib/*"
+	    ;;
     esac
     myCP=".:${cp}:../dist/*"
     export myCP
@@ -59,7 +66,7 @@ function setCP()
 # is a database, we support.
 # ----
 case "$(getProp db)" in
-    firebird|oracle|postgres|mysql|tidb|yugabyte)
+    firebird|oracle|postgres|mysql|tidb|yugabyte|tibero)
 	;;
     "")	echo "ERROR: missing db= config option in ${PROPS}" >&2
 	exit 1

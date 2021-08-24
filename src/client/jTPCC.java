@@ -128,6 +128,8 @@ public class jTPCC implements jTPCCConfig
 	    dbType = DB_FIREBIRD;
 	else if (iDB.equals("oracle"))
 	    dbType = DB_ORACLE;
+	else if (iDB.equals("tibero"))
+	    dbType = DB_ORACLE;
 	else if (iDB.equals("postgres"))
 	    dbType = DB_POSTGRES;
 	else if (iDB.equals("mysql"))
