@@ -35,6 +35,9 @@ function setCP()
 	    fi
 	    cp="${cp}:../lib/*"
 	    ;;
+	mssql)
+            cp="../lib/mssql-jdbc-9.2.0.jre8.jar:../lib/*"
+	    ;;
 	postgres)
 	    cp="../lib/postgres/*:../lib/*"
 	    ;;
@@ -56,6 +59,10 @@ function setCP()
 	    fi
 	    cp="${cp}:../lib/*"
 	    ;;
+	db2)
+	    cp="${cp}:../lib/*"
+	    cp="${cp}:../lib/db2/*"
+	    ;;
     esac
     myCP=".:${cp}:../dist/*"
     export myCP
@@ -66,7 +73,7 @@ function setCP()
 # is a database, we support.
 # ----
 case "$(getProp db)" in
-    firebird|oracle|postgres|mysql|tidb|yugabyte|tibero)
+    firebird|oracle|postgres|mysql|tidb|yugabyte|mssql|tibero|db2)
 	;;
     "")	echo "ERROR: missing db= config option in ${PROPS}" >&2
 	exit 1

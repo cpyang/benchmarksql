@@ -128,8 +128,6 @@ public class jTPCC implements jTPCCConfig
 	    dbType = DB_FIREBIRD;
 	else if (iDB.equals("oracle"))
 	    dbType = DB_ORACLE;
-	else if (iDB.equals("tibero"))
-	    dbType = DB_ORACLE;
 	else if (iDB.equals("postgres"))
 	    dbType = DB_POSTGRES;
 	else if (iDB.equals("mysql"))
@@ -138,6 +136,12 @@ public class jTPCC implements jTPCCConfig
 	    dbType = DB_MYSQL;
 	else if (iDB.equals("yugabyte"))
 	    dbType = DB_POSTGRES;
+	else if (iDB.equals("db2"))
+	    dbType = DB_UNKNOWN;
+	else if (iDB.equals("mssql"))
+	    dbType = DB_POSTGRES;
+	else if (iDB.equals("tibero"))
+	    dbType = DB_ORACLE;
 	else
 	{
 	    log.error("unknown database type '" + iDB + "'");
