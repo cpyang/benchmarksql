@@ -14,16 +14,23 @@ public interface jTPCCConfig
     public final static String JTPCCVERSION = "5.1devel";
 
     public final static int     DB_UNKNOWN = 0,
-				DB_FIREBIRD = 1,
-				DB_ORACLE = 2,
-				DB_POSTGRES = 3,
-				DB_MYSQL = 4;
+                                DB_FIREBIRD = 1,
+                                DB_ORACLE = 2,
+                                DB_POSTGRES = 3,
+                                DB_MYSQL = 4,
+                                DB_TSQL = 5,
+                                DB_BABELFISH = 6,
+                                DB_ASE = 7,
+                                DB_HANA = 8,
+                                DB_HANA_COL = 9,
+                                DB_MARIADB = 10,
+                                DB_DB2 = 11;
 
     public final static int     NEW_ORDER = 1,
-				PAYMENT = 2,
-				ORDER_STATUS = 3,
-				DELIVERY = 4,
-				STOCK_LEVEL = 5;
+                                PAYMENT = 2,
+                                ORDER_STATUS = 3,
+                                DELIVERY = 4,
+                                STOCK_LEVEL = 5;
 
     public final static String[] nameTokens = {"BAR", "OUGHT", "ABLE", "PRI", "PRES", "ESE", "ANTI", "CALLY", "ATION", "EING"};
 

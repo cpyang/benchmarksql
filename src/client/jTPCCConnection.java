@@ -12,7 +12,7 @@
 import java.util.*;
 import java.sql.*;
 
-public class jTPCCConnection
+public class jTPCCConnection implements jTPCCConfig
 {
     private Connection          dbConn = null;
     private int                 dbType = 0;
@@ -23,7 +23,9 @@ public class jTPCCConnection
     public PreparedStatement    stmtNewOrderInsertOrder;
     public PreparedStatement    stmtNewOrderInsertNewOrder;
     public PreparedStatement    stmtNewOrderSelectStock;
+    public PreparedStatement    stmtNewOrderSelectStockBatch[];
     public PreparedStatement    stmtNewOrderSelectItem;
+    public PreparedStatement    stmtNewOrderSelectItemBatch[];
     public PreparedStatement    stmtNewOrderUpdateStock;
     public PreparedStatement    stmtNewOrderInsertOrderLine;
     public PreparedStatement	stmtNewOrderStoredProc;
@@ -39,7 +41,7 @@ public class jTPCCConnection
     public PreparedStatement    stmtPaymentUpdateCustomer;
     public PreparedStatement    stmtPaymentUpdateCustomerWithData;
     public PreparedStatement    stmtPaymentInsertHistory;
-    public PreparedStatement 	stmtPaymentStoredProc;
+    public PreparedStatement	stmtPaymentStoredProc;
     public String		stmtPaymentStoredProcOracle;
 
     public PreparedStatement    stmtOrderStatusSelectCustomerListByLast;
@@ -69,17 +71,80 @@ public class jTPCCConnection
 	this.dbConn = dbConn;
 	this.dbType = dbType;
 
+	stmtNewOrderSelectStockBatch = new PreparedStatement[16];
+	String st;
+	if (dbType == DB_ASE || dbType == DB_DB2) {
+	  st =
+	      "SELECT s_i_id, s_w_id, s_quantity, s_data, "
+		  + "       s_dist_01, s_dist_02, s_dist_03, s_dist_04, "
+		  + "       s_dist_05, s_dist_06, s_dist_07, s_dist_08, "
+		  + "       s_dist_09, s_dist_10 "
+		  + "    FROM bmsql_stock "
+		  + " WHERE (s_w_id = ? AND s_i_id = ?)";
+	  for (int i = 1; i <= 15; i++) {
+	    String stmtStr = st + " FOR UPDATE";
+	    stmtNewOrderSelectStockBatch[i] = dbConn.prepareStatement(stmtStr);
+	    st += " OR (s_w_id = ? AND s_i_id = ?)";
+	  }
+	} else if (dbType == DB_TSQL) {
+	  st =
+	      "SELECT s_i_id, s_w_id, s_quantity, s_data, "
+		  + "       s_dist_01, s_dist_02, s_dist_03, s_dist_04, "
+		  + "       s_dist_05, s_dist_06, s_dist_07, s_dist_08, "
+		  + "       s_dist_09, s_dist_10 "
+		  + "    FROM bmsql_stock  WITH (UPDLOCK) "
+		  + " WHERE (s_w_id = ? AND s_i_id = ?)";
+	  for (int i = 1; i <= 15; i++) {
+	    String stmtStr = st + " ";
+	    stmtNewOrderSelectStockBatch[i] = dbConn.prepareStatement(stmtStr);
+	    st += " OR (s_w_id = ? AND s_i_id = ?)";
+	  }
+	} else {
+	  st =
+	      "SELECT s_i_id, s_w_id, s_quantity, s_data, "
+		  + "       s_dist_01, s_dist_02, s_dist_03, s_dist_04, "
+		  + "       s_dist_05, s_dist_06, s_dist_07, s_dist_08, "
+		  + "       s_dist_09, s_dist_10 "
+		  + "    FROM bmsql_stock "
+		  + "    WHERE (s_w_id, s_i_id) in ((?,?)";
+	  for (int i = 1; i <= 15; i++) {
+	    String stmtStr = st + ") FOR UPDATE";
+	    stmtNewOrderSelectStockBatch[i] = dbConn.prepareStatement(stmtStr);
+	    st += ",(?,?)";
+	  }
+	}
+	stmtNewOrderSelectItemBatch = new PreparedStatement[16];
+	st = "SELECT i_id, i_price, i_name, i_data " + "    FROM bmsql_item WHERE i_id in (?";
+	for (int i = 1; i <= 15; i++) {
+	  String stmtStr = st + ")";
+	  stmtNewOrderSelectItemBatch[i] = dbConn.prepareStatement(stmtStr);
+	  st += ",?";
+	}
 	// PreparedStataments for NEW_ORDER
 	stmtNewOrderSelectWhseCust = dbConn.prepareStatement(
 		"SELECT c_discount, c_last, c_credit, w_tax " +
 		"    FROM bmsql_customer " +
 		"    JOIN bmsql_warehouse ON (w_id = c_w_id) " +
 		"    WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?");
-	stmtNewOrderSelectDist = dbConn.prepareStatement(
-		"SELECT d_tax, d_next_o_id " +
-		"    FROM bmsql_district " +
-		"    WHERE d_w_id = ? AND d_id = ? " +
-		"    FOR UPDATE");
+	if (dbType == jTPCCConfig.DB_TSQL) {
+		stmtNewOrderSelectDist = dbConn.prepareStatement(
+			"SELECT d_tax, d_next_o_id " +
+			"    FROM bmsql_district WITH (UPDLOCK) " +
+			" WHERE d_w_id = ? AND d_id = ? ");
+	} else if (dbType == jTPCCConfig.DB_BABELFISH) {
+		stmtNewOrderSelectDist = dbConn.prepareStatement(
+			"UPDATE bmsql_district SET d_w_id = d_w_id " +
+			"    WHERE d_w_id = ? AND d_id = ?; " +
+			"SELECT d_tax, d_next_o_id " +
+			"    FROM bmsql_district WITH (UPDLOCK) " +
+			" WHERE d_w_id = ? AND d_id = ? ");
+	} else {
+		stmtNewOrderSelectDist = dbConn.prepareStatement(
+			"SELECT d_tax, d_next_o_id " +
+			"    FROM bmsql_district " +
+			"    WHERE d_w_id = ? AND d_id = ? " +
+			"    FOR UPDATE");
+	}
 	stmtNewOrderUpdateDist = dbConn.prepareStatement(
 		"UPDATE bmsql_district " +
 		"    SET d_next_o_id = d_next_o_id + 1 " +
@@ -93,14 +158,34 @@ public class jTPCCConnection
 		"INSERT INTO bmsql_new_order (" +
 		"    no_o_id, no_d_id, no_w_id) " +
 		"VALUES (?, ?, ?)");
-	stmtNewOrderSelectStock = dbConn.prepareStatement(
-		"SELECT s_quantity, s_data, " +
-		"       s_dist_01, s_dist_02, s_dist_03, s_dist_04, " +
-		"       s_dist_05, s_dist_06, s_dist_07, s_dist_08, " +
-		"       s_dist_09, s_dist_10 " +
-		"    FROM bmsql_stock " +
-		"    WHERE s_w_id = ? AND s_i_id = ? " +
-		"    FOR UPDATE");
+	if (dbType == jTPCCConfig.DB_TSQL) {
+		stmtNewOrderSelectStock = dbConn.prepareStatement(
+			"SELECT s_quantity, s_data, " +
+			"       s_dist_01, s_dist_02, s_dist_03, s_dist_04, " +
+			"       s_dist_05, s_dist_06, s_dist_07, s_dist_08, " +
+			"       s_dist_09, s_dist_10 " +
+			"    FROM bmsql_stock WITH (UPDLOCK) " +
+			"    WHERE s_w_id = ? AND s_i_id = ? ");
+	} else if (dbType == jTPCCConfig.DB_BABELFISH) {
+		stmtNewOrderSelectStock = dbConn.prepareStatement(
+			"UPDATE bmsql_stock SET s_w_id = s_w_id " +
+			"    WHERE s_w_id = ? AND s_i_id = ?; " +
+			"SELECT s_quantity, s_data, " +
+			"       s_dist_01, s_dist_02, s_dist_03, s_dist_04, " +
+			"       s_dist_05, s_dist_06, s_dist_07, s_dist_08, " +
+			"       s_dist_09, s_dist_10 " +
+			"    FROM bmsql_stock WITH (UPDLOCK) " +
+			"    WHERE s_w_id = ? AND s_i_id = ? ");
+	} else {
+		stmtNewOrderSelectStock = dbConn.prepareStatement(
+			"SELECT s_quantity, s_data, " +
+			"       s_dist_01, s_dist_02, s_dist_03, s_dist_04, " +
+			"       s_dist_05, s_dist_06, s_dist_07, s_dist_08, " +
+			"       s_dist_09, s_dist_10 " +
+			"    FROM bmsql_stock " +
+			"    WHERE s_w_id = ? AND s_i_id = ? " +
+			"    FOR UPDATE");
+	}
 	stmtNewOrderSelectItem = dbConn.prepareStatement(
 		"SELECT i_price, i_name, i_data " +
 		"    FROM bmsql_item " +
@@ -148,13 +233,31 @@ public class jTPCCConnection
 		"    FROM bmsql_customer " +
 		"    WHERE c_w_id = ? AND c_d_id = ? AND c_last = ? " +
 		"    ORDER BY c_first");
-	stmtPaymentSelectCustomer = dbConn.prepareStatement(
-		"SELECT c_first, c_middle, c_last, c_street_1, c_street_2, " +
-		"       c_city, c_state, c_zip, c_phone, c_since, c_credit, " +
-		"       c_credit_lim, c_discount, c_balance " +
-		"    FROM bmsql_customer " +
-		"    WHERE c_w_id = ? AND c_d_id = ? AND c_id = ? " +
-		"    FOR UPDATE");
+	if (dbType == jTPCCConfig.DB_TSQL) {
+		stmtPaymentSelectCustomer = dbConn.prepareStatement(
+			"SELECT c_first, c_middle, c_last, c_street_1, c_street_2, " +
+			"       c_city, c_state, c_zip, c_phone, c_since, c_credit, " +
+			"       c_credit_lim, c_discount, c_balance " +
+			"    FROM bmsql_customer WITH (UPDLOCK) " +
+			"    WHERE c_w_id = ? AND c_d_id = ? AND c_id = ? ");
+	} else if (dbType == jTPCCConfig.DB_BABELFISH) {
+		stmtPaymentSelectCustomer = dbConn.prepareStatement(
+			"UPDATE bmsql_customer SET c_w_id = c_w_id " +
+			"WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?; " +
+			"SELECT c_first, c_middle, c_last, c_street_1, c_street_2, " +
+			"       c_city, c_state, c_zip, c_phone, c_since, c_credit, " +
+			"       c_credit_lim, c_discount, c_balance " +
+			"    FROM bmsql_customer WITH (UPDLOCK) " +
+			"    WHERE c_w_id = ? AND c_d_id = ? AND c_id = ? ");
+	} else {
+		stmtPaymentSelectCustomer = dbConn.prepareStatement(
+			"SELECT c_first, c_middle, c_last, c_street_1, c_street_2, " +
+			"       c_city, c_state, c_zip, c_phone, c_since, c_credit, " +
+			"       c_credit_lim, c_discount, c_balance " +
+			"    FROM bmsql_customer " +
+			"    WHERE c_w_id = ? AND c_d_id = ? AND c_id = ? " +
+			"    FOR UPDATE");
+	}
 	stmtPaymentSelectCustomerData = dbConn.prepareStatement(
 		"SELECT c_data " +
 		"    FROM bmsql_customer " +
@@ -211,15 +314,30 @@ public class jTPCCConnection
 		"SELECT c_first, c_middle, c_last, c_balance " +
 		"    FROM bmsql_customer " +
 		"    WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?");
-	stmtOrderStatusSelectLastOrder = dbConn.prepareStatement(
-		"SELECT o_id, o_entry_d, o_carrier_id " +
-		"    FROM bmsql_oorder " +
-		"    WHERE o_w_id = ? AND o_d_id = ? AND o_c_id = ? " +
-		"      AND o_id = (" +
-		"          SELECT max(o_id) " +
-		"              FROM bmsql_oorder " +
-		"              WHERE o_w_id = ? AND o_d_id = ? AND o_c_id = ?" +
-		"          )");
+	if (dbType == DB_ASE || dbType == DB_TSQL) {
+		stmtOrderStatusSelectLastOrder = dbConn.prepareStatement(
+			"SELECT TOP 1 o_id, o_entry_d, o_carrier_id " +
+			"  FROM bmsql_oorder " +
+			"    WHERE o_w_id = ? AND o_d_id = ? AND o_c_id = ? " +
+			"  ORDER BY o_id");
+	} else {
+		/*+ NEW
+		stmtOrderStatusSelectLastOrder = dbConn.prepareStatement(
+			"SELECT o_id, o_entry_d, o_carrier_id " +
+			"    FROM bmsql_oorder " +
+			"    WHERE o_w_id = ? AND o_d_id = ? AND o_c_id = ? " +
+			"      ORDER BY o_id DESC LIMIT 1");
+		*/
+		stmtOrderStatusSelectLastOrder = dbConn.prepareStatement(
+			"SELECT o_id, o_entry_d, o_carrier_id " +
+			"    FROM bmsql_oorder " +
+			"    WHERE o_w_id = ? AND o_d_id = ? AND o_c_id = ? " +
+			"      AND o_id = (" +
+			"          SELECT max(o_id) " +
+			"              FROM bmsql_oorder " +
+			"              WHERE o_w_id = ? AND o_d_id = ? AND o_c_id = ?" +
+			"          )");
+	}
 	stmtOrderStatusSelectOrderLine = dbConn.prepareStatement(
 		"SELECT ol_i_id, ol_supply_w_id, ol_quantity, " +
 		"       ol_amount, ol_delivery_d " +
@@ -246,6 +364,13 @@ public class jTPCCConnection
 	{
 	    case jTPCCConfig.DB_POSTGRES:
 	    case jTPCCConfig.DB_MYSQL:
+	    case jTPCCConfig.DB_ASE:
+	    case jTPCCConfig.DB_HANA:
+	    case jTPCCConfig.DB_HANA_COL:
+	    case jTPCCConfig.DB_BABELFISH:
+	    case jTPCCConfig.DB_TSQL:
+	    case jTPCCConfig.DB_MARIADB:
+	    case jTPCCConfig.DB_DB2:
 		stmtStockLevelSelectLow = dbConn.prepareStatement(
 		    "SELECT count(*) AS low_stock FROM (" +
 		    "    SELECT s_w_id, s_i_id, s_quantity " +
@@ -295,11 +420,20 @@ public class jTPCCConnection
 	}
 
 	// PreparedStatements for DELIVERY_BG
-	stmtDeliveryBGSelectOldestNewOrder = dbConn.prepareStatement(
-		"SELECT no_o_id " +
-		"    FROM bmsql_new_order " +
-		"    WHERE no_w_id = ? AND no_d_id = ? " +
-		"    ORDER BY no_o_id ASC");
+	if (dbType == DB_DB2) {
+		stmtDeliveryBGSelectOldestNewOrder = dbConn.prepareStatement(
+			"SELECT no_o_id " +
+			"    FROM bmsql_new_order " +
+			"    WHERE no_w_id = ? AND no_d_id = ? " +
+			"    ORDER BY no_o_id ASC" +
+			"    LIMIT 1 FOR UPDATE");
+	} else {
+		stmtDeliveryBGSelectOldestNewOrder = dbConn.prepareStatement(
+			"SELECT no_o_id " +
+			"    FROM bmsql_new_order " +
+			"    WHERE no_w_id = ? AND no_d_id = ? " +
+			"    ORDER BY no_o_id ASC");
+	}
 	stmtDeliveryBGDeleteOldestNewOrder = dbConn.prepareStatement(
 		"DELETE FROM bmsql_new_order " +
 		"    WHERE no_w_id = ? AND no_d_id = ? AND no_o_id = ?");

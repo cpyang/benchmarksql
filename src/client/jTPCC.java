@@ -86,6 +86,7 @@ public class jTPCC implements jTPCCConfig
 	log.info("Term-00,  (c) 2003, Raul Barbosa");
 	log.info("Term-00,  (c) 2004-2016, Denis Lussier");
 	log.info("Term-00,  (c) 2016, Jan Wieck");
+	log.info("Term-00,  (c) 2023, Sean He");
 	log.info("Term-00, +-------------------------------------------------------------+");
 	log.info("Term-00, ");
 	String  iDB                 = getProp(ini,"db");
@@ -126,25 +127,27 @@ public class jTPCC implements jTPCCConfig
 
 	if (iDB.equals("firebird"))
 	    dbType = DB_FIREBIRD;
-	else if (iDB.equals("oracle"))
+	else if (iDB.equals("oracle")||iDB.equals("tibero"))
 	    dbType = DB_ORACLE;
-	else if (iDB.equals("postgres"))
+	else if (iDB.equals("postgres")||iDB.equals("yugabyte"))
 	    dbType = DB_POSTGRES;
-	else if (iDB.equals("mysql"))
+	else if (iDB.equals("mysql")||iDB.equals("tidb"))
 	    dbType = DB_MYSQL;
-	else if (iDB.equals("tidb"))
-	    dbType = DB_MYSQL;
-	else if (iDB.equals("yugabyte"))
-	    dbType = DB_POSTGRES;
+	else if (iDB.equals("mssql")||iDB.equals("transact-sql"))
+	    dbType = DB_TSQL;
 	else if (iDB.equals("db2"))
-	    dbType = DB_UNKNOWN;
-	else if (iDB.equals("mssql"))
-	    dbType = DB_POSTGRES;
-	else if (iDB.equals("tibero"))
-	    dbType = DB_ORACLE;
+	    dbType = DB_DB2;
+        else if (iDB.equals("ase"))
+            dbType = DB_ASE;
+        else if (iDB.equals("hana"))
+            dbType = DB_HANA;
+        else if (iDB.equals("hana-col"))
+            dbType = DB_HANA_COL;
+        else if (iDB.equals("mariadb"))
+            dbType = DB_MARIADB;
 	else
 	{
-	    log.error("unknown database type '" + iDB + "'");
+            log.error("unknown database type '" + iDB + "'");
 	    return;
 	}
 
