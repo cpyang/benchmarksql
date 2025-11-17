@@ -12,24 +12,18 @@ else
 	SKIP=0
 fi
 
+
+# Read the runInfo.csv file and store the values in shell variables.
+hdrs=$(head -n 1 data/runInfo.csv | tr ',' ' ')
+eval "read $hdrs" < <(tail -n 1 data/runInfo.csv | tr ',' ' ')
+
 function getRunInfo()
 {
-    exec 3< data/runInfo.csv
-    read hdrs <&3
-    hdrs=$(echo ${hdrs} | tr ',' ' ')
-    IFS=, read $hdrs <&3
-    exec <&3-
-
     eval echo "\$$1"
 }
 
 function getRunInfoColumns()
 {
-    exec 3< data/runInfo.csv
-    read hdrs <&3
-    hdrs=$(echo ${hdrs} | tr ',' ' ')
-    exec <&3-
-
     echo "${hdrs}"
 }
 
@@ -39,6 +33,10 @@ function getProp()
 }
 
 ./generateGraphs.sh "${1}" $SKIP
+if [ $? -ne 0 ] ; then
+    echo "ERROR: generateGraphs.sh failed" >&2
+    exit 1
+fi
 cd "${1}"
 echo -n "Generating ${1}/report.html ... "
 
@@ -183,9 +181,9 @@ tr ',' ' ' <data/tx_summary.csv | \
 	echo "    </tr>"
     done >>report.html
 
-tpmC=$(grep "^tpmC," data/tx_summary.csv | sed -e 's/[^,]*,//' -e 's/,.*//')
-tpmCpct=$(grep "^tpmC," data/tx_summary.csv | sed -e 's/[^,]*,[^,]*,//' -e 's/,.*//')
-tpmTotal=$(grep "^tpmTotal," data/tx_summary.csv | sed -e 's/[^,]*,//' -e 's/,.*//')
+tpmC=$(awk -F, '/^tpmC,/ {print $2}' data/tx_summary.csv)
+tpmCpct=$(awk -F, '/^tpmC,/ {print $3}' data/tx_summary.csv)
+tpmTotal=$(awk -F, '/^tpmTotal,/ {print $2}' data/tx_summary.csv)
 cat >>report.html <<_EOF_
     </table>
   </p>
@@ -239,6 +237,7 @@ _EOF_
 # ----
 # Add all the System Resource graphs. First the CPU and dirty buffers.
 # ----
+if [ -f "data/cpu_summary.csv" ] ; then
 cat >>report.html <<_EOF_
   <h2>
     System Resource Usage
@@ -293,6 +292,7 @@ cat >>report.html <<_EOF_
     <img src="data:image/svg+xml;base64,$(base64 dirty_buffers.svg)" />
   </p>
 _EOF_
+fi
 
 # ----
 # Add all the block device IOPS and KBPS
