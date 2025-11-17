@@ -28,11 +28,7 @@ cd "${resdir}" || exit 1
 
 for graph in $SIMPLE_GRAPHS ; do
 	echo -n "Generating ${resdir}/${graph}.svg ... "
-	out=$(sed -e "s/@WIDTH@/${WIDTH}/g" \
-		  -e "s/@HEIGHT@/${HEIGHT}/g" \
-		  -e "s/@POINTSIZE@/${POINTSIZE}/g" \
-		  -e "s/@SKIP@/${SKIP}/g" \
-		  <../misc/${graph}.R | R --no-save)
+	out=$(python3 ../misc/graph_generator.py "$(pwd)" "${graph}" --skip "${SKIP}" --width "${WIDTH}" --height "${HEIGHT}" --pointsize "${POINTSIZE}")
 	if [ $? -ne 0 ] ; then
 		echo "ERROR"
 		echo "$out" >&2
@@ -48,11 +44,7 @@ for fname in ./data/blk_*.csv ; do
 	devname=$(basename ${fname} .csv)
 
 	echo -n "Generating ${resdir}/${devname}_iops.svg ... "
-	out=$(sed -e "s/@WIDTH@/${WIDTH}/g" \
-		  -e "s/@HEIGHT@/${HEIGHT}/g" \
-		  -e "s/@POINTSIZE@/${POINTSIZE}/g" \
-		  -e "s/@SKIP@/${SKIP}/g" \
-		  -e "s/@DEVICE@/${devname}/g" <../misc/blk_device_iops.R | R --no-save)
+	out=$(python3 ../misc/graph_generator.py "$(pwd)" "blk_device_iops" --device "${devname}" --skip "${SKIP}" --width "${WIDTH}" --height "${HEIGHT}" --pointsize "${POINTSIZE}")
 	if [ $? -ne 0 ] ; then
 		echo "ERROR"
 		echo "$out" >&2
@@ -60,12 +52,8 @@ for fname in ./data/blk_*.csv ; do
 	fi
 	echo "OK"
 
-	echo -n "Generating ${resdir}/${devname}_kbps.svn ... "
-	out=$(sed -e "s/@WIDTH@/${WIDTH}/g" \
-		  -e "s/@HEIGHT@/${HEIGHT}/g" \
-		  -e "s/@POINTSIZE@/${POINTSIZE}/g" \
-		  -e "s/@SKIP@/${SKIP}/g" \
-		  -e "s/@DEVICE@/${devname}/g" <../misc/blk_device_kbps.R | R --no-save)
+	echo -n "Generating ${resdir}/${devname}_kbps.svg ... "
+	out=$(python3 ../misc/graph_generator.py "$(pwd)" "blk_device_kbps" --device "${devname}" --skip "${SKIP}" --width "${WIDTH}" --height "${HEIGHT}" --pointsize "${POINTSIZE}")
 	if [ $? -ne 0 ] ; then
 		echo "ERROR"
 		echo "$out" >&2
@@ -80,12 +68,8 @@ for fname in ./data/net_*.csv ; do
 	fi
 	devname=$(basename ${fname} .csv)
 
-	echo -n "Generating ${resdir}/${devname}_iops.svn ... "
-	out=$(sed -e "s/@WIDTH@/${WIDTH}/g" \
-		  -e "s/@HEIGHT@/${HEIGHT}/g" \
-		  -e "s/@POINTSIZE@/${POINTSIZE}/g" \
-		  -e "s/@SKIP@/${SKIP}/g" \
-		  -e "s/@DEVICE@/${devname}/g" <../misc/net_device_iops.R | R --no-save)
+	echo -n "Generating ${resdir}/${devname}_iops.svg ... "
+	out=$(python3 ../misc/graph_generator.py "$(pwd)" "net_device_iops" --device "${devname}" --skip "${SKIP}" --width "${WIDTH}" --height "${HEIGHT}" --pointsize "${POINTSIZE}")
 	if [ $? -ne 0 ] ; then
 		echo "ERROR"
 		echo "$out" >&2
@@ -93,12 +77,8 @@ for fname in ./data/net_*.csv ; do
 	fi
 	echo "OK"
 
-	echo -n "Generating ${resdir}/${devname}_kbps.svn ... "
-	out=$(sed -e "s/@WIDTH@/${WIDTH}/g" \
-		  -e "s/@HEIGHT@/${HEIGHT}/g" \
-		  -e "s/@POINTSIZE@/${POINTSIZE}/g" \
-		  -e "s/@SKIP@/${SKIP}/g" \
-		  -e "s/@DEVICE@/${devname}/g" <../misc/net_device_kbps.R | R --no-save)
+	echo -n "Generating ${resdir}/${devname}_kbps.svg ... "
+	out=$(python3 ../misc/graph_generator.py "$(pwd)" "net_device_kbps" --device "${devname}" --skip "${SKIP}" --width "${WIDTH}" --height "${HEIGHT}" --pointsize "${POINTSIZE}")
 	if [ $? -ne 0 ] ; then
 		echo "ERROR"
 		echo "$out" >&2
@@ -106,6 +86,3 @@ for fname in ./data/net_*.csv ; do
 	fi
 	echo "OK"
 done
-
-cd ..
-

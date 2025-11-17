@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # ----------------------------------------------------------------------
 # os_collector_linux.py -
 #
@@ -60,7 +60,7 @@ def main(argv):
     # ----
     sysInfo = ['run', 'elapsed', ]
     sysInfo += initSystemUsage()
-    print ",".join([str(x) for x in sysInfo])
+    print(",".join([str(x) for x in sysInfo]))
 
     # ----
     # Get all the devices from the command line.
@@ -84,11 +84,11 @@ def main(argv):
         if dev.startswith('blk_'):
             devInfo = ['run', 'elapsed', 'device', ]
             devInfo += initBlockDevice(dev)
-            print ",".join([str(x) for x in devInfo])
+            print(",".join([str(x) for x in devInfo]))
         elif dev.startswith('net_'):
             devInfo = ['run', 'elapsed', 'device', ]
             devInfo += initNetDevice(dev)
-            print ",".join([str(x) for x in devInfo])
+            print(",".join([str(x) for x in devInfo]))
 
     # ----
     # Flush all header lines.
@@ -111,7 +111,7 @@ def main(argv):
             # ----
             sysInfo = [runID, elapsed, ]
             sysInfo += getSystemUsage()
-            print ",".join([str(x) for x in sysInfo])
+            print(",".join([str(x) for x in sysInfo]))
 
             # ----
             # Collect all device utilization data.
@@ -120,11 +120,11 @@ def main(argv):
                 if dev.startswith('blk_'):
                     devInfo = [runID, elapsed, dev, ]
                     devInfo += getBlockUsage(dev, interval)
-                    print ",".join([str(x) for x in devInfo])
+                    print(",".join([str(x) for x in devInfo]))
                 elif dev.startswith('net_'):
                     devInfo = [runID, elapsed, dev, ]
                     devInfo += getNetUsage(dev, interval)
-                    print ",".join([str(x) for x in devInfo])
+                    print(",".join([str(x) for x in devInfo]))
 
             # ----
             # Bump the time when we are next due.
@@ -137,7 +137,7 @@ def main(argv):
     # Running on the command line for test purposes?
     # ----
     except KeyboardInterrupt:
-        print ""
+        print("")
         return 0
 
     # ----
@@ -156,7 +156,7 @@ def initSystemUsage():
     global  lastStatData
     global  lastVMStatData
 
-    procStatFD = open("/proc/stat", "r", buffering = 0)
+    procStatFD = open("/proc/stat", "r")
     for line in procStatFD:
         line = line.split()
         if line[0] == "cpu":
@@ -165,7 +165,7 @@ def initSystemUsage():
     if len(lastStatData) != 10:
         raise Exception("cpu line in /proc/stat too short");
 
-    procVMStatFD = open("/proc/vmstat", "r", buffering = 0)
+    procVMStatFD = open("/proc/vmstat", "r")
     lastVMStatData = {}
     for line in procVMStatFD:
         line = line.split()
@@ -223,7 +223,7 @@ def initBlockDevice(dev):
     global  lastDeviceData
 
     devPath = os.path.join("/sys/block", dev[4:], "stat")
-    deviceFDs[dev] = open(devPath, "r", buffering = 0)
+    deviceFDs[dev] = open(devPath, "r")
     line = deviceFDs[dev].readline().split()
 
     newData = []
@@ -266,7 +266,7 @@ def initNetDevice(dev):
     for fname in ['rx_packets', 'rx_bytes', 'tx_packets', 'tx_bytes', ]:
         key = dev + "." + fname
         deviceFDs[key] = open(os.path.join(devPath, fname),
-                              "r", buffering = 0)
+                              "r")
         deviceData.append((int)(deviceFDs[key].read()))
 
     lastDeviceData[dev] = deviceData
@@ -297,3 +297,4 @@ def getNetUsage(dev, interval):
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))
+
