@@ -14,8 +14,8 @@ fi
 
 
 # Read the runInfo.csv file and store the values in shell variables.
-hdrs=$(head -n 1 data/runInfo.csv | tr ',' ' ')
-eval "read $hdrs" < <(tail -n 1 data/runInfo.csv | tr ',' ' ')
+hdrs=$(head -n 1 $1/data/runInfo.csv | tr ',' ' ')
+eval "read $hdrs" < <(tail -n 1 $1/data/runInfo.csv | tr ',' ' ')
 
 function getRunInfo()
 {
