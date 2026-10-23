@@ -9,6 +9,34 @@ cd run
 cp props/sample.oracle.properties oracle
 ```
 
+## Prepare the Python environment (uv) — needed for report graphs
+
+The report scripts (`run/generateReport.sh` → `run/generateGraphs.sh` →
+`run/misc/graph_generator.py`) call `python3` and require the packages in
+`requirements.txt` (pandas, matplotlib, tzdata, numexpr, bottleneck).
+Create a virtualenv once, from the repository root, with [uv](https://docs.astral.sh/uv/):
+
+``` shell
+cd <benchmarksql>
+uv venv --python 3.9 .venv
+uv pip install --python .venv/bin/python -r requirements.txt
+```
+
+Then activate it whenever you generate reports:
+
+``` shell
+source .venv/bin/activate
+cd run
+./generateReport.sh my_result_YYYY-MM-DD_HHMMSS
+```
+
+On an offline / air-gapped host, install from the bundled wheel set
+(`py39_wheels/`, plus the `uv` binary in `bin/`) instead of the network:
+
+``` shell
+uv pip install --python .venv/bin/python --offline --find-links py39_wheels/ -r requirements.txt
+```
+
 ## Modify configuration 
 ``` text
 conn=jdbc:oracle:thin:@localhost:11521:db11g
