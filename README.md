@@ -1,4 +1,7 @@
 # Running BenchmarkSQL against Oracle Database
+
+> Language: [English](README.md) | [简体中文](README.zh-CN.md)
+
 ``` shell
 git clone https://github.com/cpyang/benchmarksql
 cd benchmarksql
