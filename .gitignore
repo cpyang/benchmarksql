@@ -1,2 +1,13 @@
 build
 dist
+
+# Offline Python tooling and wheels (local air-gap helper, not for distribution)
+/bin/
+/py39_wheels/
+
+# Stray npm lockfile (this project builds with Ant)
+package-lock.json
+
+# One-off Oracle tuning outputs (SQL Access Advisor / SQLT reports)
+run/idx.sql
+run/test.txt

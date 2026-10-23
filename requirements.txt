@@ -1,2 +1,6 @@
+pip
 pandas
 matplotlib
+tzdata
+numexpr
+bottleneck
